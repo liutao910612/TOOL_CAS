@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+    <util:map id="authenticationHandlersResolvers">
+        <entry key-ref="proxyAuthenticationHandler" value-ref="proxyPrincipalResolver" />
+        <entry key-ref="primaryAuthenticationHandler" value-ref="primaryPrincipalResolver" />
+    </util:map>
+
+    <util:list id="authenticationMetadataPopulators">
+        <ref bean="successfulHandlerMetaDataPopulator" />
+        <ref bean="rememberMeAuthenticationMetaDataPopulator" />
+    </util:list>
+
+    <bean id="attributeRepository" class="org.jasig.services.persondir.support.NamedStubPersonAttributeDao"
+          p:backingMap-ref="attrRepoBackingMap" />
+
+    <!--<alias name="acceptUsersAuthenticationHandler" alias="primaryAuthenticationHandler" />-->
+    <alias name="personDirectoryPrincipalResolver" alias="primaryPrincipalResolver" />
+
+    <!--从数据库的用户表读取-->
+    <bean  id="MD5PasswordEncoder"   class="org.jasig.cas.authentication.handler.DefaultPasswordEncoder"   autowire="byName">
+        <constructor-arg  value="MD5"/>
+    </bean>
+
+    <bean   id="queryDatabaseAuthenticationHandler"   name="primaryAuthenticationHandler"    class="org.jasig.cas.adaptors.jdbc.QueryDatabaseAuthenticationHandler">
+        <property   name="passwordEncoder"    ref="MD5PasswordEncoder"/>
+    </bean>
+
+    <alias   name="dataSource"   alias="queryDatabaseDataSource"/>
+    <bean   id="dataSource"
+            class="com.mchange.v2.c3p0.ComboPooledDataSource"
+            p:driverClass="com.mysql.jdbc.Driver"
+            p:jdbcUrl="jdbc:mysql://127.0.0.1:3306/liutao_dev?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull"
+            p:user="root"
+            p:password="123"
+            p:initialPoolSize="6"
+            p:minPoolSize="6"
+            p:maxPoolSize="18"
+            p:maxIdleTimeExcessConnections="120"
+            p:checkoutTimeout="10000"
+            p:acquireIncrement="6"
+            p:acquireRetryAttempts="5"
+            p:acquireRetryDelay="2000"
+            p:idleConnectionTestPeriod="30"
+            p:preferredTestQuery="select 1"/>
+    <!--end  从数据库中的用户表中读取 -->
+
+    <util:map id="attrRepoBackingMap">
+        <entry key="uid" value="uid" />
+        <entry key="eduPersonAffiliation" value="eduPersonAffiliation" />
+        <entry key="groupMembership" value="groupMembership" />
+        <entry>
+            <key><value>memberOf</value></key>
+            <list>
+                <value>faculty</value>
+                <value>staff</value>
+                <value>org</value>
+            </list>
+        </entry>
+    </util:map>
+
+    <alias name="serviceThemeResolver" alias="themeResolver" />
+
+    <alias name="jsonServiceRegistryDao" alias="serviceRegistryDao" />
+
+    <alias name="defaultTicketRegistry" alias="ticketRegistry" />
+    
+    <alias name="ticketGrantingTicketExpirationPolicy" alias="grantingTicketExpirationPolicy" />
+    <alias name="multiTimeUseOrTimeoutExpirationPolicy" alias="serviceTicketExpirationPolicy" />
+
+    <alias name="anyAuthenticationPolicy" alias="authenticationPolicy" />
+    <alias name="acceptAnyAuthenticationPolicyFactory" alias="authenticationPolicyFactory" />
+
+    <bean id="auditTrailManager"
+          class="org.jasig.inspektr.audit.support.Slf4jLoggingAuditTrailManager"
+          p:entrySeparator="${cas.audit.singleline.separator:|}"
+          p:useSingleLine="${cas.audit.singleline:false}"/>
+
+    <alias name="neverThrottle" alias="authenticationThrottle" />
+
+    <util:list id="monitorsList">
+        <ref bean="memoryMonitor" />
+        <ref bean="sessionMonitor" />
+    </util:list>
+
+    <alias name="defaultPrincipalFactory" alias="principalFactory" />
+    <alias name="defaultAuthenticationTransactionManager" alias="authenticationTransactionManager" />
+    <alias name="defaultPrincipalElectionStrategy" alias="principalElectionStrategy" />
+    <alias name="tgcCipherExecutor" alias="defaultCookieCipherExecutor" />
+</beans>
