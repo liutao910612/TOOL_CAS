@@ -1,0 +1,17 @@
+cas client工具使用说明
+（1）工具仅仅适用于Springboot工程。
+（2）在使用工具的时候需要在配置文件application.properties中添加相应的cas配置信息，如下：
+#cas config
+spring.cas.sign-out-filters=/logout
+spring.cas.auth-filters=/*
+spring.cas.validate-filters=/*
+spring.cas.request-wrapper-filters=/*
+spring.cas.assertion-filters=/*
+spring.cas.redirect-after-validation=true
+spring.cas.use-session=true
+
+#the dev of cas config
+spring.cas.cas-server-login-url=http://localhost:8080/login
+spring.cas.cas-server-url-prefix=http://localhost:8080
+spring.cas.server-name=http://localhost:8011
+（3）使用此工具的时候需要让工程能够自动扫描到工具包。
